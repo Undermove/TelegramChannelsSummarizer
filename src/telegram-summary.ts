@@ -59,11 +59,15 @@ Format example:
 Brief description of the news
 link_to_source
 
-Make the summary engaging but professional. Use Markdown formatting for better readability.`
+Make the summary engaging but professional. Use Markdown formatting for better readability.
+
+Add joke in the end of the message that slightly sarcastic and related to the news. And it should be no more than 2-3 lines. 
+If you can't add a joke, because of news limits just sacrifice one announcement from entertainment section.
+`
       },
       { role: 'user', content: text }
     ],
-    max_tokens: 1000, // Strict token limit to ensure message length
+    max_tokens: 1200, // Strict token limit to ensure message length
     temperature: 0.7
   });
   const summary = resp.choices[0].message.content || 'No summary available';
