@@ -45,6 +45,7 @@ For each news item:
 - Focus on facts, avoid speculation
 - Exclude any content that looks like advertisements, promotions, or subscription blocks
 - If a message contains both news and advertisement/subscription, extract only the news part
+- IMPORTANT: The total message length must not exceed 3500 characters
 
 Format example:
 🚀 SpaceX launched new satellite (TechNews)
@@ -55,7 +56,7 @@ Make the summary engaging but professional. Use Markdown formatting for better r
       },
       { role: 'user', content: text }
     ],
-    max_tokens: 2000,
+    max_tokens: 1500,
     temperature: 0.7
   });
   return resp.choices[0].message.content || 'No summary available';
