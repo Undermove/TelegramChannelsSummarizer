@@ -28,39 +28,44 @@ async function summarize(text: string): Promise<string> {
 }
 
 async function run() {
-  await client.connect();
-  const channels = process.env.TG_CHANNELS!.split(',').map(c => c.trim());
+  try {
+    await client.connect();
+    const channels = process.env.TG_CHANNELS!.split(',').map(c => c.trim());
 
-  const since = new Date();
-  since.setDate(since.getDate() - daysBack);
+    const since = new Date();
+    since.setDate(since.getDate() - daysBack);
 
-  let aggregate = '';
+    let aggregate = '';
 
-  for (const chan of channels) {
-    const history = await client.invoke(
-      new Api.messages.GetHistory({
-        peer: chan,
-        limit: 100,
-        offsetDate: Math.floor(since.getTime() / 1000),
-      })
-    ) as Api.messages.Messages;
-    const texts = history.messages
-      .map(m => ('message' in m ? m.message : ''))
-      .filter((m): m is string => typeof m === 'string');
+    for (const chan of channels) {
+      const history = await client.invoke(
+        new Api.messages.GetHistory({
+          peer: chan,
+          limit: 100,
+          offsetDate: Math.floor(since.getTime() / 1000),
+        })
+      ) as Api.messages.Messages;
+      const texts = history.messages
+        .map(m => ('message' in m ? m.message : ''))
+        .filter((m): m is string => typeof m === 'string');
 
-    if (texts.length) {
-      aggregate += `\n=== ${chan} ===\n` + texts.join("\n\n");
+      if (texts.length) {
+        aggregate += `\n=== ${chan} ===\n` + texts.join("\n\n");
+      }
     }
-  }
 
-  if (!aggregate) {
-    console.log('No new messages found');
-    return;
-  }
+    if (!aggregate) {
+      console.log('No new messages found');
+      return;
+    }
 
-  const summary = await summarize(aggregate);
-  await client.sendMessage(process.env.TG_TARGET_CHAT_ID!, { message: summary });
-  console.log('Summary sent');
+    const summary = await summarize(aggregate);
+    await client.sendMessage(process.env.TG_TARGET_CHAT_ID!, { message: summary });
+    console.log('Summary sent');
+  } finally {
+    await client.disconnect();
+    console.log('Disconnected from Telegram');
+  }
 }
 
 run().catch(err => {
