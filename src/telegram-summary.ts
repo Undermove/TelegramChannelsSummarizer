@@ -31,6 +31,8 @@ async function summarize(text: string): Promise<string> {
       { 
         role: 'system', 
         content: `You are a news editor creating a structured Telegram post in Markdown format. 
+The post MUST end with a Russian standup-style joke about the day's news.
+
 Format the summary as follows:
 
 **ДАЙДЖЕСТ ЗА ${formattedDate}**
@@ -46,14 +48,11 @@ Exclude entertainment, memes, or minor updates.)
 **📊 Другое**
 (Other news that doesn't fit the above categories)
 
-**🤡 Шутка от редакции**
-(Short joke about news above in standup style)
-
 For each news item:
 - Use contextual emojis based on the news topic (e.g., 🚀 for space, 💻 for tech, 🌍 for environment)
 - Keep descriptions concise (1-2 sentences)
 - Add a link to the original message if available in the end of the message on the new line just message without markdown
-- Message links should be in this format: https://t.me/channelname/announcement_id not in this: https://t.me/c/channelname/announcement_id
+- Message links should be in this format: https://t.me/channelname/announcement_id
 - Focus on facts, avoid speculation
 - Make new lines between each news item
 - IMPORTANT: The total message length must not exceed 4000 characters
@@ -63,20 +62,33 @@ Format example:
 Brief description of the news
 https://t.me/channelname/announcement_id
 
-Make the summary engaging but professional. Use Markdown formatting for better readability.
+**🤡 ШУТКА ДНЯ (ОБЯЗАТЕЛЬНО!)**
+After all news sections, you MUST add a joke that:
+- Is in Russian standup style (like Comedy Club)
+- Is short and punchy (1-2 lines max)
+- Is relevant to one of the day's news
+- Has a clear punchline
+- Is slightly sarcastic but not offensive
+- Is the very last thing in the message
 
-Add joke in the end of the message that slightly sarcastic and related to the news. And it should be no more than 2-3 lines. 
-If you can't add a joke, because of news limits just sacrifice one announcement from entertainment section.
-`
+Example joke:
+"Говорят, ИИ заменит всех программистов. Ну наконец-то у меня появится время на личную жизнь!"
+
+CRITICAL: The joke is a REQUIRED part of the message. If you need to sacrifice some news to fit the joke, do it. The joke must be present and must be the last thing in the message.`
       },
       { role: 'user', content: text }
     ],
-    max_tokens: 1200, // Strict token limit to ensure message length
+    max_tokens: 1200,
     temperature: 0.7
   });
   const summary = resp.choices[0].message.content || 'No summary available';
   console.log(`Summary length: ${summary.length} characters`);
   return summary;
+}
+
+function fixTelegramLinks(text: string): string {
+  const regex = /(?:https?:\/\/)?t\.me\/c\/([A-Za-z0-9_]+\/\d+)/g;
+  return text.replace(regex, 'https://t.me/$1');
 }
 
 async function run() {
@@ -100,7 +112,7 @@ async function run() {
       const texts = history.messages
         .map(m => {
           if ('message' in m && typeof m.message === 'string') {
-            const messageLink = `https://t.me/c/${chan.replace('@', '')}/${m.id}`;
+            const messageLink = `https://t.me/${chan.replace('@', '')}/${m.id}`;
             const previewText = m.message.split('\n')[0].slice(0, 50) + (m.message.length > 50 ? '...' : '');
             return `[${previewText}](${messageLink})\n${m.message}`;
           }
@@ -124,8 +136,9 @@ async function run() {
       return;
     }
     
+    const fixedSummary = fixTelegramLinks(summary);
     await client.sendMessage(process.env.TG_TARGET_CHAT_ID!, { 
-      message: summary,
+      message: fixedSummary,
       parseMode: 'markdown'
     });
     console.log('Summary sent');
