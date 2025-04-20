@@ -49,7 +49,7 @@ Exclude entertainment, memes, or minor updates.)
 For each news item:
 - Use contextual emojis based on the news topic (e.g., 🚀 for space, 💻 for tech, 🌍 for environment)
 - Keep descriptions concise (1-2 sentences)
-- Add a link to the original message if available in the end of the message
+- Add a link to the original message if available in the end of the message on the new line just message without markdown and it template should be like this: https://t.me/channelname/announcement_id
 - Focus on facts, avoid speculation
 - Make new lines between each news item
 - IMPORTANT: The total message length must not exceed 4000 characters
