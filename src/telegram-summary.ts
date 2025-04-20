@@ -45,8 +45,9 @@ For each news item:
 - IMPORTANT: The total message length must not exceed 3000 characters
 
 Format example:
-🚀 [SpaceX launched new satellite](link_to_source) (ChannelName)
-• Brief description of the news
+🚀 SpaceX launched new satellite
+Brief description of the news
+link_to_source
 
 Make the summary engaging but professional. Use Markdown formatting for better readability.`
       },
