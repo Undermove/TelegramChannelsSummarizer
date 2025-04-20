@@ -42,6 +42,7 @@ For each news item:
 - Include source channel name in parentheses
 - Add a link to the original message if available
 - Focus on facts, avoid speculation
+- IMPORTANT: The total message length must not exceed 3000 characters
 
 Format example:
 🚀 [SpaceX launched new satellite](link_to_source) (ChannelName)
@@ -50,9 +51,13 @@ Format example:
 Make the summary engaging but professional. Use Markdown formatting for better readability.`
       },
       { role: 'user', content: text }
-    ]
+    ],
+    max_tokens: 1000, // Strict token limit to ensure message length
+    temperature: 0.7
   });
-  return resp.choices[0].message.content || 'No summary available';
+  const summary = resp.choices[0].message.content || 'No summary available';
+  console.log(`Summary length: ${summary.length} characters`);
+  return summary;
 }
 
 async function run() {
@@ -95,8 +100,13 @@ async function run() {
     }
 
     const summary = await summarize(aggregate);
+    if (summary.length > 4000) {
+      console.error('Summary exceeds Telegram message limit');
+      return;
+    }
+    
     await client.sendMessage(process.env.TG_TARGET_CHAT_ID!, { 
-      message: "summary",
+      message: summary,
       parseMode: 'markdown'
     });
     console.log('Summary sent');
