@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/telegram-summary.js",
-    "generate-session": "ts-node src/generate-session.ts"
+    "generate-session": "ts-node src/generate-session.ts",
+    "find-chat-id": "ts-node src/find-chat-id.ts"
   },
   "dependencies": {
     "dotenv": "^16.0.3",
