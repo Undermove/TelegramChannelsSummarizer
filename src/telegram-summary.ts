@@ -18,7 +18,7 @@ const client = new TelegramClient(new StringSession(sessionStr), apiId, apiHash,
 async function summarize(text: string): Promise<string> {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const resp = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-4.1-mini',
     messages: [
       { role: 'system', content: 'You are a helpful assistant. Summarize the following news in Russian.' },
       { role: 'user', content: text }
