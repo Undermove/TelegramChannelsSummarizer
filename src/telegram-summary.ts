@@ -96,7 +96,7 @@ async function run() {
 
     const summary = await summarize(aggregate);
     await client.sendMessage(process.env.TG_TARGET_CHAT_ID!, { 
-      message: summary,
+      message: "summary",
       parseMode: 'markdown'
     });
     console.log('Summary sent');
