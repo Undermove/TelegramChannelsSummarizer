@@ -56,16 +56,17 @@ For each news item:
 - Focus on facts, avoid speculation
 - Make new lines between each news item
 - IMPORTANT: The total message length must not exceed 4000 characters
+- IMPORTANT: JOKE MUST BE IN THE MESSAGE
 
 Format example:
 🚀 SpaceX launched new satellite
 Brief description of the news
 https://t.me/channelname/announcement_id
 
-**🤡 ШУТКА ДНЯ (ОБЯЗАТЕЛЬНО!)**
+**🤡 ШУТКА ДНЯ**
 After all news sections, you MUST add a joke that:
-- Is in Russian standup style (like Comedy Club)
-- Is short and punchy (1-2 lines max)
+- Is in Russian standup style (like Standup Club number 1)
+- Is short and punchy (1-5 lines max)
 - Is relevant to one of the day's news
 - Has a clear punchline
 - Is slightly sarcastic but not offensive
@@ -79,7 +80,7 @@ CRITICAL: The joke is a REQUIRED part of the message. If you need to sacrifice s
       { role: 'user', content: text }
     ],
     max_tokens: 1200,
-    temperature: 0.7
+    temperature: 0.6
   });
   const summary = resp.choices[0].message.content || 'No summary available';
   console.log(`Summary length: ${summary.length} characters`);
@@ -131,7 +132,8 @@ async function run() {
     }
 
     const summary = await summarize(aggregate);
-    if (summary.length > 4000) {
+    if (summary.length > 4096) {
+      console.log(summary);
       console.error('Summary exceeds Telegram message limit');
       return;
     }
