@@ -45,7 +45,6 @@ For each news item:
 - Focus on facts, avoid speculation
 - Exclude any content that looks like advertisements, promotions, or subscription blocks
 - If a message contains both news and advertisement/subscription, extract only the news part
-- Keep each news item under 1000 characters to fit Telegram's message limits
 
 Format example:
 🚀 SpaceX launched new satellite (TechNews)
@@ -55,7 +54,9 @@ Format example:
 Make the summary engaging but professional. Use Markdown formatting for better readability.`
       },
       { role: 'user', content: text }
-    ]
+    ],
+    max_tokens: 2000,
+    temperature: 0.7
   });
   return resp.choices[0].message.content || 'No summary available';
 }
