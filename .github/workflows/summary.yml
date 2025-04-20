@@ -1,8 +1,8 @@
 name: "Telegram News Summary"
 on:
-  # Every 3 days at 09:00 UTC; adjust as needed
+  # Every 3 days at 06:00 UTC (10:00 GMT+4)
   schedule:
-    - cron: '0 9 */3 * *'
+    - cron: '0 6 */3 * *'
   workflow_dispatch: {}
 
 jobs:
