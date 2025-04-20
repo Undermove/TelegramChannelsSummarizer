@@ -24,11 +24,11 @@ async function summarize(text: string): Promise<string> {
       { role: 'user', content: text }
     ]
   });
-  return resp.choices[0].message.content;
+  return resp.choices[0].message.content || 'No summary available';
 }
 
 async function run() {
-  await client.start();
+  await client.connect();
   const channels = process.env.TG_CHANNELS!.split(',').map(c => c.trim());
 
   const since = new Date();
@@ -41,11 +41,11 @@ async function run() {
       new Api.messages.GetHistory({
         peer: chan,
         limit: 100,
-        offsetDate: since,
+        offsetDate: Math.floor(since.getTime() / 1000),
       })
-    );
-    const texts = (history.messages as any[])
-      .map(m => m.message)
+    ) as Api.messages.Messages;
+    const texts = history.messages
+      .map(m => ('message' in m ? m.message : ''))
       .filter((m): m is string => typeof m === 'string');
 
     if (texts.length) {
