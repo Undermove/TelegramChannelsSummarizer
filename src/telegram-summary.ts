@@ -24,6 +24,7 @@ async function summarize(text: string): Promise<string> {
         role: 'system', 
         content: `You are a news editor creating a structured Telegram post in Markdown format. 
 Format the summary as follows:
+**ДАЙДЖЕСТ ЗА (сегодняшняя дата)**
 
 **📰 Основные новости**
 (Only include news that can significantly impact work, technology, or society. 
@@ -39,9 +40,9 @@ Exclude entertainment, memes, or minor updates.)
 For each news item:
 - Use contextual emojis based on the news topic (e.g., 🚀 for space, 💻 for tech, 🌍 for environment)
 - Keep descriptions concise (1-2 sentences)
-- Include source channel name in parentheses
-- Add a link to the original message if available
+- Add a link to the original message if available in the end of the message
 - Focus on facts, avoid speculation
+- Make new lines between each news item
 - IMPORTANT: The total message length must not exceed 3000 characters
 
 Format example:
