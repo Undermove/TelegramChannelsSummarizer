@@ -77,7 +77,8 @@ async function run() {
         .map(m => {
           if ('message' in m && typeof m.message === 'string') {
             const messageLink = `https://t.me/c/${chan.replace('@', '')}/${m.id}`;
-            return `[${m.message}](${messageLink})`;
+            const previewText = m.message.split('\n')[0].slice(0, 50) + (m.message.length > 50 ? '...' : '');
+            return `[${previewText}](${messageLink})\n${m.message}`;
           }
           return '';
         })
@@ -94,7 +95,10 @@ async function run() {
     }
 
     const summary = await summarize(aggregate);
-    await client.sendMessage(process.env.TG_TARGET_CHAT_ID!, { message: summary });
+    await client.sendMessage(process.env.TG_TARGET_CHAT_ID!, { 
+      message: summary,
+      parseMode: 'markdown'
+    });
     console.log('Summary sent');
   } finally {
     await client.disconnect();
