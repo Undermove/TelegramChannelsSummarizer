@@ -17,6 +17,14 @@ const client = new TelegramClient(new StringSession(sessionStr), apiId, apiHash,
 
 async function summarize(text: string): Promise<string> {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const now = new Date();
+  const options: Intl.DateTimeFormatOptions = { 
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  };
+  const formattedDate = now.toLocaleDateString('ru-RU', options);
+  
   const resp = await openai.chat.completions.create({
     model: 'gpt-4.1-mini',
     messages: [
@@ -24,7 +32,8 @@ async function summarize(text: string): Promise<string> {
         role: 'system', 
         content: `You are a news editor creating a structured Telegram post in Markdown format. 
 Format the summary as follows:
-**ДАЙДЖЕСТ ЗА (сегодняшняя дата)**
+
+**ДАЙДЖЕСТ ЗА ${formattedDate}**
 
 **📰 Основные новости**
 (Only include news that can significantly impact work, technology, or society. 
@@ -43,7 +52,7 @@ For each news item:
 - Add a link to the original message if available in the end of the message
 - Focus on facts, avoid speculation
 - Make new lines between each news item
-- IMPORTANT: The total message length must not exceed 3000 characters
+- IMPORTANT: The total message length must not exceed 4000 characters
 
 Format example:
 🚀 SpaceX launched new satellite
