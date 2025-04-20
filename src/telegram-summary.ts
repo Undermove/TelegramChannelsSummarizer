@@ -22,27 +22,32 @@ async function summarize(text: string): Promise<string> {
     messages: [
       { 
         role: 'system', 
-        content: `You are a news editor creating a structured Telegram post. 
+        content: `You are a news editor creating a structured Telegram post in Markdown format. 
 Format the summary as follows:
 
-📰 ОСНОВНЫЕ НОВОСТИ
+**📰 Основные новости**
 (Only include news that can significantly impact work, technology, or society. 
 Examples: major tech breakthroughs, important policy changes, significant scientific discoveries.
 Exclude entertainment, memes, or minor updates.)
 
-🎮 РАЗВЛЕЧЕНИЯ И ИНТЕРЕСНОЕ
+**🎮 Развлечения и интересное**
 (Fun facts, entertainment news, interesting but not critical updates)
 
-📊 ДРУГОЕ
+**📊 Другое**
 (Other news that doesn't fit the above categories)
 
 For each news item:
-- Use bullet points (•)
+- Use contextual emojis based on the news topic (e.g., 🚀 for space, 💻 for tech, 🌍 for environment)
 - Keep descriptions concise (1-2 sentences)
 - Include source channel name in parentheses
+- Add a link to the original message if available
 - Focus on facts, avoid speculation
 
-Make the summary engaging but professional.`
+Format example:
+🚀 [SpaceX launched new satellite](link_to_source) (ChannelName)
+• Brief description of the news
+
+Make the summary engaging but professional. Use Markdown formatting for better readability.`
       },
       { role: 'user', content: text }
     ]
@@ -69,8 +74,14 @@ async function run() {
         })
       ) as Api.messages.Messages;
       const texts = history.messages
-        .map(m => ('message' in m ? m.message : ''))
-        .filter((m): m is string => typeof m === 'string');
+        .map(m => {
+          if ('message' in m && typeof m.message === 'string') {
+            const messageLink = `https://t.me/c/${chan.replace('@', '')}/${m.id}`;
+            return `[${m.message}](${messageLink})`;
+          }
+          return '';
+        })
+        .filter(Boolean);
 
       if (texts.length) {
         aggregate += `\n=== ${chan} ===\n` + texts.join("\n\n");
