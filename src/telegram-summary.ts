@@ -28,23 +28,24 @@ Format the summary as follows:
 **📰 Основные новости**
 (Only include news that can significantly impact work, technology, or society. 
 Examples: major tech breakthroughs, important policy changes, significant scientific discoveries.
-Exclude entertainment, memes, minor updates, and advertisements.)
+Exclude entertainment, memes, minor updates, advertisements, and subscription blocks.)
 
 **🎮 Развлечения и интересное**
 (Fun facts, entertainment news, interesting but not critical updates.
-Exclude advertisements and promotional content.)
+Exclude advertisements, promotional content, and subscription blocks.)
 
 **📊 Другое**
 (Other news that doesn't fit the above categories.
-Exclude advertisements and promotional content.)
+Exclude advertisements, promotional content, and subscription blocks.)
 
 For each news item:
 - Use contextual emojis based on the news topic (e.g., 🚀 for space, 💻 for tech, 🌍 for environment)
 - Keep descriptions concise (1-2 sentences)
 - Include source channel name in parentheses
 - Focus on facts, avoid speculation
-- Exclude any content that looks like advertisements or promotions
-- If a message contains both news and advertisement, extract only the news part
+- Exclude any content that looks like advertisements, promotions, or subscription blocks
+- If a message contains both news and advertisement/subscription, extract only the news part
+- Keep each news item under 1000 characters to fit Telegram's message limits
 
 Format example:
 🚀 SpaceX launched new satellite (TechNews)
@@ -80,8 +81,12 @@ async function run() {
       const texts = history.messages
         .map(m => {
           if ('message' in m && typeof m.message === 'string') {
+            // Filter out subscription blocks
+            const message = m.message.replace(/Подписывайтесь на.*(@\w+,?\s*)+/g, '').trim();
+            if (!message) return '';
+            
             const messageLink = `https://t.me/c/${chan.replace('@', '')}/${m.id}`;
-            return `${m.message}\n🔗 ${messageLink}`;
+            return `${message}\n🔗 ${messageLink}`;
           }
           return '';
         })
