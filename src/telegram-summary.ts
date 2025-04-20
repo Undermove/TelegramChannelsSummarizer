@@ -61,7 +61,7 @@ For each news item:
 Format example:
 🚀 SpaceX launched new satellite
 Brief description of the news
-link_to_source
+https://t.me/channelname/announcement_id
 
 Make the summary engaging but professional. Use Markdown formatting for better readability.
 
