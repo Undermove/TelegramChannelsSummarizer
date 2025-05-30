@@ -35,7 +35,7 @@ The post MUST end with a Russian standup-style joke about the day's news.
 
 Format the summary as follows:
 
-**ДАЙДЖЕСТ ЗА ${formattedDate}**
+**ЕЖЕНЕДЕЛЬНЫЙ ДАЙДЖЕСТ ЗА ${formattedDate}**
 
 **📰 Основные новости**
 (Only include news that can significantly impact work, technology, or society. 

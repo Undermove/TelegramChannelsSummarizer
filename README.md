@@ -55,7 +55,7 @@ A tool that automatically summarizes messages from specified Telegram channels a
    TG_CHANNELS=channel1,channel2  # Comma-separated list of channel usernames
    TG_TARGET_CHAT_ID=your_chat_id # ID of the chat to receive summaries
    OPENAI_API_KEY=your_openai_api_key
-   DAYS=3  # Number of days to look back for messages
+   DAYS=7  # Number of days to look back for messages (weekly summary)
    ```
 
 6. **Find chat ID** (if needed)
@@ -85,7 +85,7 @@ A tool that automatically summarizes messages from specified Telegram channels a
    Edit `.github/workflows/summary.yml` to change the schedule:
    ```yaml
    schedule:
-     - cron: '0 9 */3 * *'  # Runs every 3 days at 09:00 UTC
+     - cron: '0 6 * * 1'  # Runs every Monday at 06:00 UTC
    ```
 
 ## Usage

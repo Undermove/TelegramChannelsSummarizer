@@ -1,8 +1,8 @@
 name: "Telegram News Summary"
 on:
-  # Every 3 days at 06:00 UTC (10:00 GMT+4)
+  # Every Monday at 06:00 UTC (10:00 GMT+4)
   schedule:
-    - cron: '0 6 */3 * *'
+    - cron: '0 6 * * 1'
   workflow_dispatch: {}
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
           TELEGRAM_STRING_SESSION: ${{ secrets.TELEGRAM_STRING_SESSION }}  # Generated session string
           TG_CHANNELS: ${{ secrets.TG_CHANNELS }}                # Comma-separated list of channel usernames
           TG_TARGET_CHAT_ID: ${{ secrets.TG_TARGET_CHAT_ID }}    # Chat ID to receive the summary
-          DAYS: '3'                                              # Days back to fetch
+          DAYS: '7'                                              # Days back to fetch (weekly summary)
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}          # For summarization
         run: |
           npm run build
