@@ -6,8 +6,9 @@ A tool that automatically summarizes messages from specified Telegram channels a
 
 - Fetches messages from multiple Telegram channels
 - Summarizes content using OpenAI's GPT model
-- Sends summaries to a specified chat
-- Runs automatically via GitHub Actions
+- Generates a separate weekly joke based on the news summary
+- Sends summary and joke as separate messages to a specified chat
+- Runs automatically via GitHub Actions on a weekly schedule
 - Configurable time period for message collection
 
 ## Prerequisites
@@ -106,6 +107,7 @@ You can also trigger it manually from the GitHub Actions tab.
 - **Change schedule**: Edit the cron expression in `.github/workflows/summary.yml`
 - **Change summary language**: Modify the system prompt in `src/telegram-summary.ts`
 - **Change model**: Update the model name in `src/telegram-summary.ts`
+- **Customize joke style**: Edit the joke generation prompt in the `generateJoke` function
 
 ## Troubleshooting
 

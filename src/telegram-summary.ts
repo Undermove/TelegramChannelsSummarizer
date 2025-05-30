@@ -30,8 +30,7 @@ async function summarize(text: string): Promise<string> {
     messages: [
       { 
         role: 'system', 
-        content: `You are a news editor creating a structured Telegram post in Markdown format. 
-The post MUST end with a Russian standup-style joke about the day's news.
+        content: `You are a news editor creating a structured Telegram post in Markdown format.
 
 Format the summary as follows:
 
@@ -56,26 +55,11 @@ For each news item:
 - Focus on facts, avoid speculation
 - Make new lines between each news item
 - IMPORTANT: The total message length must not exceed 4000 characters
-- IMPORTANT: JOKE MUST BE IN THE MESSAGE
 
 Format example:
 🚀 SpaceX launched new satellite
 Brief description of the news
-https://t.me/channelname/announcement_id
-
-**🤡 ШУТКА ДНЯ**
-After all news sections, you MUST add a joke that:
-- Is in Russian standup style (like Standup Club number 1)
-- Is short and punchy (1-5 lines max)
-- Is relevant to one of the day's news
-- Has a clear punchline
-- Is slightly sarcastic but not offensive
-- Is the very last thing in the message
-
-Example joke:
-"Говорят, ИИ заменит всех программистов. Ну наконец-то у меня появится время на личную жизнь!"
-
-CRITICAL: The joke is a REQUIRED part of the message. If you need to sacrifice some news to fit the joke, do it. The joke must be present and must be the last thing in the message.`
+https://t.me/channelname/announcement_id`
       },
       { role: 'user', content: text }
     ],
@@ -85,6 +69,46 @@ CRITICAL: The joke is a REQUIRED part of the message. If you need to sacrifice s
   const summary = resp.choices[0].message.content || 'No summary available';
   console.log(`Summary length: ${summary.length} characters`);
   return summary;
+}
+
+async function generateJoke(summary: string): Promise<string> {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  
+  const resp = await openai.chat.completions.create({
+    model: 'gpt-4.1-mini',
+    messages: [
+      { 
+        role: 'system', 
+        content: `You are a Russian standup comedian. Create a funny joke based on the news summary provided.
+        
+Your joke MUST:
+- Be in Russian standup style (like Standup Club number 1)
+- Be short and punchy (1-5 lines max)
+- Be relevant to one of the news items in the summary
+- Have a clear punchline
+- Be slightly sarcastic but not offensive
+
+Format your response as:
+
+**🤡 ШУТКА НЕДЕЛИ**
+
+"Your joke here"
+
+Example:
+**🤡 ШУТКА НЕДЕЛИ**
+
+"Говорят, ИИ заменит всех программистов. Ну наконец-то у меня появится время на личную жизнь!"
+`
+      },
+      { role: 'user', content: summary }
+    ],
+    max_tokens: 300,
+    temperature: 0.8
+  });
+  
+  const joke = resp.choices[0].message.content || 'No joke available';
+  console.log(`Joke length: ${joke.length} characters`);
+  return joke;
 }
 
 function fixTelegramLinks(text: string): string {
@@ -131,6 +155,7 @@ async function run() {
       return;
     }
 
+    // Generate and send the summary
     const summary = await summarize(aggregate);
     if (summary.length > 4096) {
       console.log(summary);
@@ -144,6 +169,21 @@ async function run() {
       parseMode: 'markdown'
     });
     console.log('Summary sent');
+    
+    // Generate and send the joke as a separate message
+    const joke = await generateJoke(summary);
+    if (joke.length > 4096) {
+      console.log(joke);
+      console.error('Joke exceeds Telegram message limit');
+      return;
+    }
+    
+    const fixedJoke = fixTelegramLinks(joke);
+    await client.sendMessage(process.env.TG_TARGET_CHAT_ID!, { 
+      message: fixedJoke,
+      parseMode: 'markdown'
+    });
+    console.log('Joke sent');
   } finally {
     await client.disconnect();
     console.log('Disconnected from Telegram');
