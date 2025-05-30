@@ -9,7 +9,15 @@ config();
 const apiId = Number(process.env.TELEGRAM_API_ID!);
 const apiHash = process.env.TELEGRAM_API_HASH!;
 const sessionStr = process.env.TELEGRAM_STRING_SESSION!;
-const daysBack = Number(process.env.DAYS || '1');
+
+// Проверка корректности параметра DAYS
+let daysBack = Number(process.env.DAYS || '7');
+if (isNaN(daysBack) || daysBack <= 0) {
+  console.error(`Invalid DAYS parameter: ${process.env.DAYS}. Using default value of 7 days.`);
+  daysBack = 7;
+}
+
+console.log(`Looking for messages from the last ${daysBack} days`);
 
 const client = new TelegramClient(new StringSession(sessionStr), apiId, apiHash, {
   connectionRetries: 5,
@@ -131,15 +139,42 @@ async function run() {
         new Api.messages.GetHistory({
           peer: chan,
           limit: 100,
+          // Используем offsetDate как начальную точку для получения сообщений
           offsetDate: Math.floor(since.getTime() / 1000),
         })
       ) as Api.messages.Messages;
-      const texts = history.messages
+      
+      // Получаем timestamp для фильтрации (в секундах)
+      const sinceTimestamp = Math.floor(since.getTime() / 1000);
+      console.log(`Channel: ${chan}`);
+      console.log(`Filtering messages since: ${new Date(sinceTimestamp * 1000).toISOString()} (${sinceTimestamp})`);
+      console.log(`Total messages received: ${history.messages.length}`);
+      
+      // Фильтруем сообщения по дате и затем преобразуем их
+      const filteredMessages = history.messages.filter(m => {
+        // Проверяем, что сообщение имеет дату и она новее, чем указанная дата
+        if ('date' in m && typeof m.date === 'number') {
+          const messageDate = m.date;
+          const isRecent = messageDate >= sinceTimestamp;
+          
+          if (!isRecent) {
+            console.log(`Skipping old message from ${new Date(messageDate * 1000).toISOString()} (${messageDate})`);
+          }
+          
+          return isRecent;
+        }
+        return false;
+      });
+      
+      console.log(`Messages after date filtering: ${filteredMessages.length}`);
+      
+      const texts = filteredMessages
         .map(m => {
           if ('message' in m && typeof m.message === 'string') {
             const messageLink = `https://t.me/${chan.replace('@', '')}/${m.id}`;
+            const messageDate = new Date(m.date * 1000).toISOString().split('T')[0];
             const previewText = m.message.split('\n')[0].slice(0, 50) + (m.message.length > 50 ? '...' : '');
-            return `[${previewText}](${messageLink})\n${m.message}`;
+            return `[${previewText}](${messageLink}) (${messageDate})\n${m.message}`;
           }
           return '';
         })
