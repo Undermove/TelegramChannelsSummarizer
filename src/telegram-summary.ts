@@ -33,19 +33,59 @@ async function summarize(text: string): Promise<string> {
   };
   const formattedDate = now.toLocaleDateString('ru-RU', options);
   
+  // First, analyze the text to find frequently mentioned topics
+  const topicsResp = await openai.chat.completions.create({
+    model: 'gpt-4.1-mini',
+    messages: [
+      { 
+        role: 'system', 
+        content: `Analyze the provided text and identify the most frequently mentioned topics or themes. 
+Focus especially on AI-related topics that would be relevant to engineers and developers.
+Return a JSON array of the top 3-5 most mentioned topics in order of frequency.
+Format: ["topic1", "topic2", "topic3"]`
+      },
+      { role: 'user', content: text }
+    ],
+    max_tokens: 300,
+    temperature: 0.3,
+    response_format: { type: "json_object" }
+  });
+  
+  let topMentionedTopics: string[] = [];
+  try {
+    const topicsContent = topicsResp.choices[0].message.content || '{"topics":[]}';
+    const topicsJson = JSON.parse(topicsContent);
+    topMentionedTopics = topicsJson.topics || [];
+    console.log(`Top mentioned topics: ${topMentionedTopics.join(', ')}`);
+  } catch (e) {
+    console.error('Failed to parse top topics:', e);
+  }
+  
+  const topicsContext = topMentionedTopics.length > 0 
+    ? `The most frequently mentioned topics in the news are: ${topMentionedTopics.join(', ')}. Pay special attention to these topics.` 
+    : '';
+  
   const resp = await openai.chat.completions.create({
     model: 'gpt-4.1-mini',
     messages: [
       { 
         role: 'system', 
-        content: `You are a news editor creating a structured Telegram post in Markdown format.
+        content: `You are a news editor creating a structured Telegram post in Markdown format, with a special focus on AI developments relevant to engineers and developers.
+
+${topicsContext}
 
 Format the summary as follows:
 
 **ЕЖЕНЕДЕЛЬНЫЙ ДАЙДЖЕСТ ЗА ${formattedDate}**
 
+**🤖 AI для инженеров**
+(HIGHEST PRIORITY SECTION: Include hardcore AI news that would be valuable for engineers and developers.
+Examples: new AI models, significant technical breakthroughs, new APIs or tools, performance improvements, 
+engineering best practices, technical deep dives, research papers with practical applications.
+Be specific about technical details when available.)
+
 **📰 Основные новости**
-(Only include news that can significantly impact work, technology, or society. 
+(Include other news that can significantly impact work, technology, or society. 
 Examples: major tech breakthroughs, important policy changes, significant scientific discoveries.
 Exclude entertainment, memes, or minor updates.)
 
@@ -56,17 +96,18 @@ Exclude entertainment, memes, or minor updates.)
 (Other news that doesn't fit the above categories)
 
 For each news item:
-- Use contextual emojis based on the news topic (e.g., 🚀 for space, 💻 for tech, 🌍 for environment)
+- Use contextual emojis based on the news topic (e.g., 🧠 for AI, 🚀 for space, 💻 for tech, 🌍 for environment)
 - Keep descriptions concise (1-2 sentences)
 - Add a link to the original message if available in the end of the message on the new line just message without markdown
 - Message links should be in this format: https://t.me/channelname/announcement_id
 - Focus on facts, avoid speculation
 - Make new lines between each news item
 - IMPORTANT: The total message length must not exceed 4000 characters
+- If a topic is mentioned frequently across multiple sources, prioritize it and note its significance
 
 Format example:
-🚀 SpaceX launched new satellite
-Brief description of the news
+🧠 New breakthrough in transformer architecture improves inference speed by 40%
+Technical details about the innovation and how engineers can implement it
 https://t.me/channelname/announcement_id`
       },
       { role: 'user', content: text }
@@ -87,14 +128,15 @@ async function generateJoke(summary: string): Promise<string> {
     messages: [
       { 
         role: 'system', 
-        content: `You are a Russian standup comedian. Create a funny joke based on the news summary provided.
+        content: `You are a Russian standup comedian with a tech background. Create a funny joke based on the news summary provided.
         
 Your joke MUST:
 - Be in Russian standup style (like Standup Club number 1)
 - Be short and punchy (1-5 lines max)
-- Be relevant to one of the news items in the summary
+- Preferably be related to AI, tech, or engineering topics from the summary
 - Have a clear punchline
 - Be slightly sarcastic but not offensive
+- Include technical humor that engineers would appreciate
 
 Format your response as:
 
@@ -105,7 +147,7 @@ Format your response as:
 Example:
 **🤡 ШУТКА НЕДЕЛИ**
 
-"Говорят, ИИ заменит всех программистов. Ну наконец-то у меня появится время на личную жизнь!"
+"Говорят, новые модели ИИ теперь понимают контекст лучше людей. Отлично! Теперь хоть кто-то поймет, что я имел в виду в своем коде, написанном в 3 часа ночи!"
 `
       },
       { role: 'user', content: summary }
@@ -172,7 +214,22 @@ async function run() {
             const messageLink = `https://t.me/${chan.replace('@', '')}/${m.id}`;
             const messageDate = new Date(m.date * 1000).toISOString().split('T')[0];
             const previewText = m.message.split('\n')[0].slice(0, 50) + (m.message.length > 50 ? '...' : '');
-            return `[${previewText}](${messageLink}) (${messageDate})\n${m.message}`;
+            
+            // Count message reactions if available to help identify popular topics
+            let reactionCount = 0;
+            if ('reactions' in m && m.reactions && 'results' in m.reactions) {
+              reactionCount = m.reactions.results.reduce((sum: number, reaction: any) => {
+                return sum + (reaction.count || 0);
+              }, 0);
+            }
+            
+            // Count views if available
+            const views = 'views' in m ? m.views : 0;
+            
+            // Add metadata to help with topic analysis
+            const metadata = `CHANNEL: ${chan} | DATE: ${messageDate} | VIEWS: ${views || 'N/A'} | REACTIONS: ${reactionCount || 'N/A'}`;
+            
+            return `[${previewText}](${messageLink}) (${messageDate})\n${metadata}\n${m.message}`;
           }
           return '';
         })
