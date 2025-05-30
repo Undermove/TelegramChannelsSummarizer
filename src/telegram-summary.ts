@@ -139,8 +139,6 @@ async function run() {
         new Api.messages.GetHistory({
           peer: chan,
           limit: 100,
-          // Используем offsetDate как начальную точку для получения сообщений
-          offsetDate: Math.floor(since.getTime() / 1000),
         })
       ) as Api.messages.Messages;
       
